@@ -1,0 +1,26 @@
+# Development environment values
+namespace: dev-test
+replicaCount: 1
+image:
+  repository: charlilyyyy/test-fe
+  tag: "latest"  # or "latest" for dev
+containerPort: 80
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  # hosts:
+  #   - host: dev.example.com
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix
+  tls: []
+service:
+  type: ClusterIP
+  port: 80
+# Scheduling - dev can run on any node
+nodeSelector: {}
+tolerations: []
+affinity: {}
+# imagePullSecrets:
+#   - name: acr-creds

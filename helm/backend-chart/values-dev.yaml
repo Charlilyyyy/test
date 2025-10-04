@@ -1,0 +1,26 @@
+namespace: dev-test
+replicaCount: 1
+image:
+  repository: charlilyyyy/test-be
+  tag: "latest"
+  pullPolicy: IfNotPresent
+containerPort: 8000
+service:
+  type: ClusterIP
+  port: 8000
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # hosts:
+  #   - host: fastapi.example.com
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix
+  tls: []
+nodeSelector:
+  kubernetes.io/hostname: minikube
+tolerations: []
+affinity: {}
+# imagePullSecrets:
+#   - name: acr-creds

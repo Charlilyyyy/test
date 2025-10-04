@@ -1,0 +1,5 @@
+# get pod
+kubectl get po -n frontend-dev -o wide
+
+# get pod data
+kubectl describe po -n frontend-dev frontend-dev-6cc755c4b5-xtvnc

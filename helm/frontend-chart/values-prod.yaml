@@ -1,0 +1,41 @@
+# Production environment values
+namespace: frontend
+replicaCount: 3
+image:
+  repository: charlilyyyy/tpjazurepythonreactappfe
+  tag: "19"  # or specific prod version
+containerPort: 80
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: frontend-tls
+      hosts:
+        - example.com
+service:
+  type: ClusterIP
+  port: 80
+# Scheduling - production with anti-affinity and node selection
+nodeSelector:
+  kubernetes.io/hostname: minikube
+tolerations: []
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - frontend-chart
+        topologyKey: kubernetes.io/hostname

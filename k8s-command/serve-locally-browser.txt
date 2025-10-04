@@ -1,0 +1,3 @@
+# serve locally using minikube
+minikube service frontend-dev -n dev-test
+minikube service backend-dev -n dev-test
