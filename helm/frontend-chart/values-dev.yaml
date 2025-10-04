@@ -24,3 +24,10 @@ tolerations: []
 affinity: {}
 # imagePullSecrets:
 #   - name: acr-creds
+
+# Configuration values
+config:
+  apiBaseUrl: "/api"
+  environment: "development"
+  version: "1.0.0"
+  debug: "true"

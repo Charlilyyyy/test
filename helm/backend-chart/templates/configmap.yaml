@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "backend-chart.labels" . | nindent 4 }}
+data:
+  # Backend environment variables
+  ENVIRONMENT: "{{ .Values.config.environment | default "development" }}"
+  LOG_LEVEL: "{{ .Values.config.logLevel | default "INFO" }}"
+  CORS_ORIGINS: "{{ .Values.config.corsOrigins | default "http://localhost:5173,http://localhost:3000" }}"
+  API_VERSION: "{{ .Values.config.apiVersion | default "v1" }}"
+  DEBUG: "{{ .Values.config.debug | default "true" }}"

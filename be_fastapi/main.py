@@ -2,18 +2,27 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any
 import uvicorn
+import os
+
+# Get configuration from environment variables (ConfigMap)
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+API_VERSION = os.getenv("API_VERSION", "v1")
+DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 
 # Create FastAPI instance
 app = FastAPI(
     title="Simple FastAPI App",
     description="A simple FastAPI application with basic CRUD operations",
-    version="1.0.0"
+    version="1.0.0",
+    debug=DEBUG
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # React dev servers
+    allow_origins=CORS_ORIGINS,  # From ConfigMap
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
@@ -32,6 +41,17 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "message": "API is running"}
+
+# Configuration endpoint
+@app.get("/config")
+async def get_config():
+    return {
+        "environment": ENVIRONMENT,
+        "log_level": LOG_LEVEL,
+        "cors_origins": CORS_ORIGINS,
+        "api_version": API_VERSION,
+        "debug": DEBUG
+    }
 
 # Get all items
 @app.get("/items")

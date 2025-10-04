@@ -3,8 +3,10 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
-// API base URL - using Kubernetes service name for inter-service communication
-// const API_BASE_URL = 'http://backend-dev:8000'
+// Get configuration from environment variables (ConfigMap)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT || 'development'
+const DEBUG = import.meta.env.VITE_DEBUG === 'true'
 
 interface Item {
   id: number
@@ -23,12 +25,12 @@ function App() {
   const fetchItems = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/items`)
+      const response = await fetch(`${API_BASE_URL}/items`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
-      console.log('Fetched items from API:', data)
+      if (DEBUG) console.log('Fetched items from API:', data)
       setItems(data)
     } catch (error) {
       console.error('Error fetching items:', error)
@@ -40,11 +42,22 @@ function App() {
   // Fetch health status
   const fetchHealth = async () => {
     try {
-      const response = await fetch(`/api/health`)
+      const response = await fetch(`${API_BASE_URL}/health`)
       const data = await response.json()
-      console.log('API Health Status:', data)
+      if (DEBUG) console.log('API Health Status:', data)
     } catch (error) {
       console.error('Error fetching health status:', error)
+    }
+  }
+
+  // Fetch configuration
+  const fetchConfig = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/config`)
+      const data = await response.json()
+      if (DEBUG) console.log('API Configuration:', data)
+    } catch (error) {
+      console.error('Error fetching configuration:', error)
     }
   }
 
@@ -58,7 +71,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(`/api/items`, {
+      const response = await fetch(`${API_BASE_URL}/items`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +79,7 @@ function App() {
         body: JSON.stringify(newItem)
       })
       const data = await response.json()
-      console.log('Created new item:', data)
+      if (DEBUG) console.log('Created new item:', data)
       // Refresh the items list
       fetchItems()
     } catch (error) {
@@ -77,6 +90,7 @@ function App() {
   // Fetch data on component mount
   useEffect(() => {
     fetchHealth()
+    fetchConfig()
     fetchItems()
   }, [])
 
@@ -91,6 +105,9 @@ function App() {
         </a>
       </div>
       <h1>Vite + React + FastAPI</h1>
+      <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px' }}>
+        <strong>Environment:</strong> {ENVIRONMENT} | <strong>API Base URL:</strong> {API_BASE_URL} | <strong>Debug:</strong> {DEBUG ? 'ON' : 'OFF'}
+      </div>
       
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
@@ -107,6 +124,9 @@ function App() {
           </button>
           <button onClick={fetchHealth} style={{ marginLeft: '10px' }}>
             Check API Health
+          </button>
+          <button onClick={fetchConfig} style={{ marginLeft: '10px' }}>
+            Show Config
           </button>
         </div>
 

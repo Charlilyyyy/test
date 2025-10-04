@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "frontend-chart.labels" . | nindent 4 }}
+data:
+  # Frontend environment variables (Vite uses VITE_ prefix)
+  VITE_API_BASE_URL: "{{ .Values.config.apiBaseUrl | default "/api" }}"
+  VITE_ENVIRONMENT: "{{ .Values.config.environment | default "development" }}"
+  VITE_VERSION: "{{ .Values.config.version | default "1.0.0" }}"
+  VITE_DEBUG: "{{ .Values.config.debug | default "true" }}"
