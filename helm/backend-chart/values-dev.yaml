@@ -4,10 +4,10 @@ image:
   repository: charlilyyyy/test-be
   tag: "latest"
   pullPolicy: IfNotPresent
-containerPort: 27017
+containerPort: 8000
 service:
   type: ClusterIP
-  port: 27017
+  port: 8000
 ingress:
   enabled: false
   className: ""
