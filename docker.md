@@ -35,5 +35,7 @@ to do :
 5. if cannot please change the api endpoint and it is according in .env
     - done: get api when expose
     - done: need api connot open in browser
-6. after settle , instead of .env please use secrets or configmap etc
+6. done :after settle , instead of .env please use secrets or configmap etc
 7. watch webinar
+8. instead of configmap , watch how odin do and use direct from keyvault ,and use azure id managed identity later
+9. security implementation cicd
