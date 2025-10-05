@@ -1,0 +1,12 @@
+# cordon
+kubectl cordon minikube
+
+# reschedule pod after cordon
+kubectl drain minikube --ignore-daemonsets --delete-emptydir-data --force
+
+# uncordon
+kubectl uncordon minikube
+
+# reschedule pod after undrain
+kubectl drain minikube-m02 --ignore-daemonsets --delete-emptydir-data --force
+

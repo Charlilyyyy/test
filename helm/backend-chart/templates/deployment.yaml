@@ -33,3 +33,16 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-config
+            # - secretRef:
+            #     name: {{ .Release.Name }}-secrets
+          # volumeMounts:
+          #   - name: secrets-store
+          #     mountPath: "/mnt/secrets-store"
+          #     readOnly: true
+      # volumes:
+      #   - name: secrets-store
+      #     csi:
+      #       driver: secrets-store.csi.k8s.io
+      #       readOnly: true
+      #       volumeAttributes:
+      #         secretProviderClass: {{ .Release.Name }}-keyvault-secret-provider

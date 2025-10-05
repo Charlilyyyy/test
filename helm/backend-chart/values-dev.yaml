@@ -18,10 +18,38 @@ ingress:
   #       - path: /
   #         pathType: Prefix
   tls: []
-nodeSelector:
-  kubernetes.io/hostname: minikube
+nodeSelector: {}
 tolerations: []
-affinity: {}
+affinity:
+  # Prefer minikube node but allow fallback to other nodes
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minikube
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/os
+          operator: In
+          values:
+          - linux
+  # Anti-affinity to spread pods across nodes when possible
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 50
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - backend-chart
+        topologyKey: kubernetes.io/hostname
 # imagePullSecrets:
 #   - name: acr-creds
 
@@ -32,3 +60,22 @@ config:
   corsOrigins: "http://localhost:5173,http://localhost:3000"
   apiVersion: "v1"
   debug: "true"
+
+# Azure Key Vault configuration
+keyVault:
+  vaultName: "your-keyvault-name"
+  vaultUrl: "https://your-keyvault-name.vault.azure.net/"
+  tenantId: "your-tenant-id"
+  clientId: "your-client-id"
+  clientSecret: "your-client-secret"
+  userAssignedIdentityID: "your-managed-identity-id"
+  secrets:
+    apiToken:
+      name: "api-token"
+      version: ""
+    databasePassword:
+      name: "database-password"
+      version: ""
+    jwtSecret:
+      name: "jwt-secret"
+      version: ""

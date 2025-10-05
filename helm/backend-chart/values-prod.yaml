@@ -1,0 +1,75 @@
+# Production environment values
+namespace: prod-test
+replicaCount: 3
+image:
+  repository: charlilyyyy/test-be
+  tag: "latest"
+  pullPolicy: IfNotPresent
+containerPort: 8000
+service:
+  type: ClusterIP
+  port: 8000
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: api.yourdomain.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: api-tls
+      hosts:
+        - api.yourdomain.com
+nodeSelector: {}
+tolerations: []
+affinity:
+  # Production: Spread across multiple nodes for high availability
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: In
+          values:
+          - backend-chart
+      topologyKey: kubernetes.io/hostname
+  # Prefer nodes with specific labels (if you have them)
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 50
+      preference:
+        matchExpressions:
+        - key: node-type
+          operator: In
+          values:
+          - compute-optimized
+
+# Configuration values
+config:
+  environment: "production"
+  logLevel: "WARNING"
+  corsOrigins: "https://yourdomain.com,https://www.yourdomain.com"
+  apiVersion: "v1"
+  debug: "false"
+
+# Azure Key Vault configuration
+keyVault:
+  vaultName: "your-prod-keyvault"
+  vaultUrl: "https://your-prod-keyvault.vault.azure.net/"
+  tenantId: "your-tenant-id"
+  clientId: "your-client-id"
+  clientSecret: "your-client-secret"
+  userAssignedIdentityID: "your-managed-identity-id"
+  secrets:
+    apiToken:
+      name: "prod-api-token"
+      version: ""
+    databasePassword:
+      name: "prod-database-password"
+      version: ""
+    jwtSecret:
+      name: "prod-jwt-secret"
+      version: ""

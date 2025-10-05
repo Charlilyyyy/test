@@ -18,10 +18,39 @@ ingress:
 service:
   type: ClusterIP
   port: 80
-# Scheduling - dev can run on any node
+# Scheduling - prefer minikube but allow fallback to other nodes
 nodeSelector: {}
 tolerations: []
-affinity: {}
+affinity:
+  # Prefer minikube node but allow fallback to other nodes
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - minikube
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/os
+          operator: In
+          values:
+          - linux
+  # Anti-affinity to spread pods across nodes when possible
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 50
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - frontend-chart
+        topologyKey: kubernetes.io/hostname
 # imagePullSecrets:
 #   - name: acr-creds
 

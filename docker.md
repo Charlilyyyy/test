@@ -39,3 +39,4 @@ to do :
 7. watch webinar
 8. instead of configmap , watch how odin do and use direct from keyvault ,and use azure id managed identity later
 9. security implementation cicd
+10. in odin , deployment need affinity and anti affinity to make sure pod goes to which nodepool and if nodepool is down can schedule to other nodes
