@@ -12,3 +12,4 @@ data:
   CORS_ORIGINS: "{{ .Values.config.corsOrigins | default "http://localhost:5173,http://localhost:3000" }}"
   API_VERSION: "{{ .Values.config.apiVersion | default "v1" }}"
   DEBUG: "{{ .Values.config.debug | default "true" }}"
+

@@ -79,3 +79,15 @@ keyVault:
     jwtSecret:
       name: "jwt-secret"
       version: ""
+
+env:
+  pgHost: postgres
+  pgSecretName: pg-secret
+  neo4jUri: bolt://neo4j:7687
+  neo4jUser: neo4j
+  neo4jPassword: example
+
+postgres:
+  user: postgres
+  password: postgres
+  database: appdb

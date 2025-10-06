@@ -33,6 +33,31 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-config
+          env:
+            - name: PG_HOST
+              value: {{ .Values.env.pgHost | default "postgres" }}
+            - name: PG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.pgSecretName | default "pg-secret" }}
+                  key: POSTGRES_USER
+            - name: PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.pgSecretName | default "pg-secret" }}
+                  key: POSTGRES_PASSWORD
+            - name: PG_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.pgSecretName | default "pg-secret" }}
+                  key: POSTGRES_DB
+            - name: NEO4J_URI
+              value: {{ .Values.env.neo4jUri | default "bolt://neo4j:7687" }}
+            - name: NEO4J_USER
+              value: {{ .Values.env.neo4jUser | default "neo4j" }}
+            - name: NEO4J_PASSWORD
+              value: {{ .Values.env.neo4jPassword | default "example" }}
+
             # - secretRef:
             #     name: {{ .Release.Name }}-secrets
           # volumeMounts:

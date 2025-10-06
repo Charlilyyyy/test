@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: neo4j
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: neo4j
+spec:
+  serviceName: neo4j
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo4j
+  template:
+    metadata:
+      labels:
+        app: neo4j
+    spec:
+      containers:
+        - name: neo4j
+          image: {{ .Values.neo4j.image.repository }}:{{ .Values.neo4j.image.tag }}
+          ports:
+            - containerPort: 7474  # HTTP
+            - containerPort: 7687  # Bolt
+          env:
+            - name: NEO4J_AUTH
+              value: "{{ .Values.neo4j.user }}/{{ .Values.neo4j.password }}"
+          volumeMounts:
+            - name: neo4j-data
+              mountPath: /data
+          readinessProbe:
+            tcpSocket:
+              port: 7687
+            initialDelaySeconds: 10
+            periodSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: neo4j-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.neo4j.storage }}
