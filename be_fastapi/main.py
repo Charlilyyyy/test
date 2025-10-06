@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any
 import uvicorn
 import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from neo4j import GraphDatabase
 
 # Get configuration from environment variables (ConfigMap)
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -15,6 +18,26 @@ DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 API_TOKEN = os.getenv("API_TOKEN", "default-token")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "default-password")
 JWT_SECRET = os.getenv("JWT_SECRET", "default-jwt-secret")
+
+try:
+pg_conn = psycopg2.connect(
+host=PG_HOST,
+port=PG_PORT,
+user=PG_USER,
+password=PG_PASSWORD,
+dbname=PG_DATABASE,
+cursor_factory=RealDictCursor
+)
+print("Connected to PostgreSQL")
+except Exception as e:
+print("Postgres connection error:", e)
+
+# Neo4j setup
+NEO4J_URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
+NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "example")
+
+neo_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 # Alternative: Read secrets from mounted files (Azure Key Vault)
 def read_secret_from_file(secret_name: str, default_value: str = "") -> str:
@@ -51,6 +74,13 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+# PostgreSQL setup
+PG_HOST = os.getenv("PG_HOST", "postgres")
+PG_PORT = os.getenv("PG_PORT", "5432")
+PG_USER = os.getenv("PG_USER", "postgres")
+PG_PASSWORD = os.getenv("PG_PASSWORD", "postgres")
+PG_DATABASE = os.getenv("PG_DATABASE", "appdb")
+
 # In-memory storage (in a real app, you'd use a database)
 items_db = []
 next_id = 1
@@ -80,6 +110,27 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "message": "API is running"}
+
+@app.get("/api/users")
+def get_users():
+    try:
+        with pg_conn.cursor() as cur:
+            cur.execute("SELECT id, name, email FROM users LIMIT 20;")
+            rows = cur.fetchall()
+        return {"rows": rows}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/graph")
+def get_graph():
+    try:
+        with neo_driver.session() as session:
+            result = session.run("MATCH (n) RETURN n LIMIT 20")
+            nodes = [record["n"].data() for record in result]
+        return {"nodes": nodes}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Configuration endpoint
 @app.get("/config")
