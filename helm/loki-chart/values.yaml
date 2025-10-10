@@ -1,0 +1,104 @@
+# Default values for loki-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Namespace for Loki deployment
+namespace: default
+
+# This will set the replicaset count
+replicaCount: 1
+
+# This sets the container image
+image:
+  repository: grafana/loki
+  pullPolicy: IfNotPresent
+  tag: "2.9.0"
+
+# Container ports
+containerPort: 3100
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3100
+
+# Service Account
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 10001
+  runAsUser: 10001
+  runAsNonRoot: true
+
+securityContext: {}
+
+# Resources
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Persistent storage
+persistence:
+  enabled: false
+  size: 10Gi
+  storageClass: ""
+
+# Loki configuration
+loki:
+  auth_enabled: false
+  server:
+    http_listen_port: 3100
+  ingester:
+    lifecycler:
+      ring:
+        replication_factor: 1
+    chunk_idle_period: 5m
+    chunk_retain_period: 30s
+    wal:
+      dir: /loki/wal
+  schema_config:
+    configs:
+      - from: 2020-10-24
+        store: boltdb-shipper
+        object_store: filesystem
+        schema: v11
+        index:
+          prefix: index_
+          period: 24h
+  storage_config:
+    boltdb_shipper:
+      active_index_directory: /loki/boltdb-shipper-active
+      cache_location: /loki/boltdb-shipper-cache
+      shared_store: filesystem
+    filesystem:
+      directory: /loki/chunks
+  compactor:
+    working_directory: /loki/compactor
+    shared_store: filesystem
+  limits_config:
+    enforce_metric_name: false
+    reject_old_samples: true
+    reject_old_samples_max_age: 168h
+  chunk_store_config:
+    max_look_back_period: 0s
+  table_manager:
+    retention_deletes_enabled: false
+    retention_period: 0s
+

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: grafana-chart
+description: A Helm chart for Grafana monitoring and visualization platform
+
+type: application
+
+version: 0.1.0
+
+appVersion: "10.2.0"
+

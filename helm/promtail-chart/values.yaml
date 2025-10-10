@@ -1,0 +1,76 @@
+# Default values for promtail-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Namespace for Promtail deployment
+namespace: default
+
+# This sets the container image
+image:
+  repository: grafana/promtail
+  pullPolicy: IfNotPresent
+  tag: "2.9.0"
+
+# Container port
+containerPort: 3101
+
+# Service Account
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+# RBAC configuration - Promtail needs to read pods and logs
+rbac:
+  create: true
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
+securityContext:
+  privileged: true
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Resources
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+nodeSelector: {}
+
+tolerations:
+  - effect: NoSchedule
+    operator: Exists
+
+affinity: {}
+
+# Update strategy for DaemonSet
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+
+# Loki configuration
+loki:
+  serviceName: loki
+  servicePort: 3100
+
+# Promtail configuration
+config:
+  lokiAddress: http://loki:3100/loki/api/v1/push
+  snippets:
+    extraScrapeConfigs: |
+      # Add additional scrape configs here
+

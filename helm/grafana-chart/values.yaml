@@ -1,0 +1,102 @@
+# Default values for grafana-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Namespace for Grafana deployment
+namespace: default
+
+# This will set the replicaset count
+replicaCount: 1
+
+# This sets the container image
+image:
+  repository: grafana/grafana
+  pullPolicy: IfNotPresent
+  tag: "10.2.0"
+
+# Container port
+containerPort: 3000
+
+# This is for the secrets for pulling an image from a private repository
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This section builds out the service account
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 472
+  runAsUser: 472
+  runAsNonRoot: true
+
+securityContext: {}
+
+# This is for setting up a service
+service:
+  type: ClusterIP
+  port: 3000
+
+# Grafana admin credentials
+adminUser: admin
+adminPassword: admin
+
+# Grafana datasources
+datasources:
+  enabled: true
+  datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus:9090
+      access: proxy
+      isDefault: true
+    - name: Loki
+      type: loki
+      url: http://loki:3100
+      access: proxy
+      isDefault: false
+
+# Grafana dashboards
+dashboards:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Additional volumes
+volumes: []
+
+# Additional volumeMounts
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Persistent storage
+persistence:
+  enabled: false
+  size: 5Gi
+  storageClass: ""
+
+# Grafana plugins to install
+plugins: []
+# - grafana-piechart-panel
+

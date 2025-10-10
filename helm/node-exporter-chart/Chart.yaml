@@ -1,0 +1,10 @@
+apiVersion: v2
+name: node-exporter-chart
+description: A Helm chart for Prometheus Node Exporter - exposes hardware and OS metrics
+
+type: application
+
+version: 0.1.0
+
+appVersion: "v1.6.1"
+

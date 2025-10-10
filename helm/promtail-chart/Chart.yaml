@@ -1,0 +1,10 @@
+apiVersion: v2
+name: promtail-chart
+description: A Helm chart for Grafana Promtail - log collection agent for Loki
+
+type: application
+
+version: 0.1.0
+
+appVersion: "2.9.0"
+

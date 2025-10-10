@@ -1,0 +1,25 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your Prometheus instance has been deployed.
+
+To access Prometheus:
+
+1. Get the application URL by running these commands:
+{{- if eq .Values.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Values.namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ .Release.Name }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Values.namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Prometheus URL: http://$NODE_IP:$NODE_PORT"
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  You can watch the status by running 'kubectl get --namespace {{ .Values.namespace }} svc -w {{ .Release.Name }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Values.namespace }} {{ .Release.Name }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "Prometheus URL: http://$SERVICE_IP:{{ .Values.service.port }}"
+{{- else if eq .Values.service.type "ClusterIP" }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Values.namespace }} -l "app.kubernetes.io/name={{ include "prometheus-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Values.namespace }} port-forward $POD_NAME 9090:{{ .Values.containerPort }}
+  echo "Visit http://127.0.0.1:9090 to access Prometheus"
+{{- end }}
+
+For more information about Prometheus, visit:
+https://prometheus.io/docs/
+
