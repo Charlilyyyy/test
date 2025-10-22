@@ -61,6 +61,49 @@ data:
             replacement: /var/log/containers/${1}_${2}_${3}-*.log
             action: replace
 
+      - job_name: frontend-dev-only
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - dev-test
+
+        pipeline_stages:
+          - cri: {}
+
+        relabel_configs:
+          # ✅ Keep only pods whose instance label matches frontend-dev
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+            regex: frontend-dev
+            action: keep
+
+          # ✅ Keep only Running pods
+          - source_labels: [__meta_kubernetes_pod_phase]
+            regex: Running
+            action: keep
+
+          # ✅ Add useful metadata
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            target_label: app
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+            target_label: instance
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node_name
+
+          # ✅ Correct container log file path (Kubernetes standard)
+          - source_labels:
+              [__meta_kubernetes_pod_name, __meta_kubernetes_namespace, __meta_kubernetes_pod_container_name]
+            regex: (.*);(.*);(.*)
+            target_label: __path__
+            replacement: /var/log/containers/${1}_${2}_${3}-*.log
+            action: replace
+
     {{- with .Values.config.snippets.extraScrapeConfigs }}
     {{ . | nindent 6 }}
     {{- end }}
