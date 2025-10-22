@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 # Namespace for Promtail deployment
-namespace: default
+namespace: dev-test
 
 # This sets the container image
 image:
@@ -48,13 +48,9 @@ resources:
     cpu: 100m
     memory: 64Mi
 
-nodeSelector: {}
-
-tolerations:
-  - effect: NoSchedule
-    operator: Exists
-
-affinity: {}
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+tolerations: []
 
 # Update strategy for DaemonSet
 updateStrategy:
@@ -69,7 +65,7 @@ loki:
 
 # Promtail configuration
 config:
-  lokiAddress: http://loki:3100/loki/api/v1/push
+  lokiAddress: http://loki.dev-test.svc.cluster.local:3100/loki/api/v1/push
   snippets:
     extraScrapeConfigs: |
       # Add additional scrape configs here

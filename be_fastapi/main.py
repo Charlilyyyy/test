@@ -1,11 +1,17 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from typing import List, Dict, Any
 import uvicorn
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from neo4j import GraphDatabase
+# import psycopg2
+# from psycopg2.extras import RealDictCursor
+# from neo4j import GraphDatabase
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+import time
+import logging
+
+logger = logging.getLogger("uvicorn.app")  # or "uvicorn"
 
 # Get configuration from environment variables (ConfigMap)
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -19,25 +25,25 @@ API_TOKEN = os.getenv("API_TOKEN", "default-token")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "default-password")
 JWT_SECRET = os.getenv("JWT_SECRET", "default-jwt-secret")
 
-try:
-pg_conn = psycopg2.connect(
-host=PG_HOST,
-port=PG_PORT,
-user=PG_USER,
-password=PG_PASSWORD,
-dbname=PG_DATABASE,
-cursor_factory=RealDictCursor
-)
-print("Connected to PostgreSQL")
-except Exception as e:
-print("Postgres connection error:", e)
+# try:
+# pg_conn = psycopg2.connect(
+# host=PG_HOST,
+# port=PG_PORT,
+# user=PG_USER,
+# password=PG_PASSWORD,
+# dbname=PG_DATABASE,
+# cursor_factory=RealDictCursor
+# )
+# print("Connected to PostgreSQL")
+# except Exception as e:
+# print("Postgres connection error:", e)
 
-# Neo4j setup
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "example")
+# # Neo4j setup
+# NEO4J_URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
+# NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+# NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "example")
 
-neo_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+# neo_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 # Alternative: Read secrets from mounted files (Azure Key Vault)
 def read_secret_from_file(secret_name: str, default_value: str = "") -> str:
@@ -74,6 +80,27 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+# Prometheus metrics middleware
+@app.middleware("http")
+async def prometheus_middleware(request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    
+    # Record metrics
+    REQUEST_COUNT.labels(
+        method=request.method,
+        endpoint=request.url.path,
+        status=response.status_code
+    ).inc()
+    
+    REQUEST_DURATION.labels(
+        method=request.method,
+        endpoint=request.url.path
+    ).observe(duration)
+    
+    return response
+
 # PostgreSQL setup
 PG_HOST = os.getenv("PG_HOST", "postgres")
 PG_PORT = os.getenv("PG_PORT", "5432")
@@ -84,6 +111,10 @@ PG_DATABASE = os.getenv("PG_DATABASE", "appdb")
 # In-memory storage (in a real app, you'd use a database)
 items_db = []
 next_id = 1
+
+# Prometheus metrics
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
+REQUEST_DURATION = Histogram('http_request_duration_seconds', 'HTTP request duration', ['method', 'endpoint'])
 
 # Print secrets on startup (for testing - remove in production!)
 @app.on_event("startup")
@@ -111,26 +142,31 @@ async def root():
 async def health_check():
     return {"status": "healthy", "message": "API is running"}
 
-@app.get("/api/users")
-def get_users():
-    try:
-        with pg_conn.cursor() as cur:
-            cur.execute("SELECT id, name, email FROM users LIMIT 20;")
-            rows = cur.fetchall()
-        return {"rows": rows}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# Prometheus metrics endpoint
+@app.get("/metrics")
+async def metrics():
+    return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+# @app.get("/api/users")
+# def get_users():
+#     try:
+#         with pg_conn.cursor() as cur:
+#             cur.execute("SELECT id, name, email FROM users LIMIT 20;")
+#             rows = cur.fetchall()
+#         return {"rows": rows}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/graph")
-def get_graph():
-    try:
-        with neo_driver.session() as session:
-            result = session.run("MATCH (n) RETURN n LIMIT 20")
-            nodes = [record["n"].data() for record in result]
-        return {"nodes": nodes}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @app.get("/api/graph")
+# def get_graph():
+#     try:
+#         with neo_driver.session() as session:
+#             result = session.run("MATCH (n) RETURN n LIMIT 20")
+#             nodes = [record["n"].data() for record in result]
+#         return {"nodes": nodes}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 # Configuration endpoint
 @app.get("/config")
@@ -164,6 +200,7 @@ async def get_secrets():
 # Get all items
 @app.get("/items")
 async def get_items():
+    logger.info("GET ITEMS LOG")
     """Get all items from the database"""
     return items_db
 
@@ -179,6 +216,7 @@ async def get_item(item_id: int):
 # Create new item
 @app.post("/items")
 async def create_item(item: Dict[str, Any]):
+    logger.info("CREATE ITEMS LOG")
     """Create a new item"""
     global next_id
     new_item = {

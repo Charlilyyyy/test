@@ -1,3 +1,7 @@
 # serve locally using minikube
 minikube service frontend-dev -n dev-test
 minikube service backend-dev -n dev-test
+minikube service argocd-server -n argocd
+minikube service argocd-server -n dev-test
+minikube service prometheus -n dev-test
+minikube service grafana -n dev-test

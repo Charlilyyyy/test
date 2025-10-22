@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 # Namespace for Loki deployment
-namespace: default
+namespace: dev-test
 
 # This will set the replicaset count
 replicaCount: 1
@@ -60,7 +60,7 @@ persistence:
   size: 10Gi
   storageClass: ""
 
-# Loki configuration
+# Loki configuration - Single instance setup
 loki:
   auth_enabled: false
   server:
@@ -68,6 +68,8 @@ loki:
   ingester:
     lifecycler:
       ring:
+        kvstore:
+          store: inmemory
         replication_factor: 1
     chunk_idle_period: 5m
     chunk_retain_period: 30s
@@ -101,4 +103,12 @@ loki:
   table_manager:
     retention_deletes_enabled: false
     retention_period: 0s
+  # Disable distributed components for single instance
+  ruler:
+    storage:
+      type: local
+      local:
+        directory: /loki/rules
+  query_scheduler:
+    max_outstanding_requests_per_tenant: 2048
 

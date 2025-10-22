@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "promtail-chart.labels" . | nindent 4 }}
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: {{ .Values.containerPort }}
+      grpc_listen_port: 0
+
+    positions:
+      filename: /run/promtail/positions.yaml
+
+    clients:
+      - url: {{ .Values.config.lokiAddress }}
+
+    scrape_configs:
+      # Generic pod log scraping
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        pipeline_stages:
+          - cri: {}
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node_name
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app, __meta_kubernetes_pod_label_app_kubernetes_io_name]
+            target_label: app
+          # ✅ Correct Docker log path
+          - replacement: /var/log/containers/*.log
+            target_label: __path__
+
+      # Specific scrape for dev-test namespace
+      - job_name: dev-test-pods
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - dev-test
+        pipeline_stages:
+          - cri: {}
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node_name
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          # ✅ Correct Docker log path
+          - replacement: /var/log/containers/*.log
+            target_label: __path__
+
+    {{- with .Values.config.snippets.extraScrapeConfigs }}
+    {{ . | nindent 6 }}
+    {{- end }}

@@ -16,15 +16,15 @@ docker push charlilyyyy/test-fe:4
 be
 
 # 1. Build Docker image
-docker build -t charlilyyyy/test-be:latest -t charlilyyyy/test-be:4 .
+docker build -t charlilyyyy/test-be:latest -t charlilyyyy/test-be:5 .
 
 # 2. Push both tags
 docker push charlilyyyy/test-be:latest
-docker push charlilyyyy/test-be:4
+docker push charlilyyyy/test-be:5
 
-docker build -t charlilyyyy/test-be:latest -t charlilyyyy/test-be:4 .
+docker build -t charlilyyyy/test-be:latest -t charlilyyyy/test-be:5 .
 docker push charlilyyyy/test-be:latest
-docker push charlilyyyy/test-be:4
+docker push charlilyyyy/test-be:5
 
 
 to do :

@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 # Namespace for Grafana deployment
-namespace: default
+namespace: dev-test
 
 # This will set the replicaset count
 replicaCount: 1

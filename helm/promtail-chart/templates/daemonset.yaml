@@ -50,6 +50,9 @@ spec:
               mountPath: /etc/promtail
             - name: run
               mountPath: /run/promtail
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
             - name: containers
               mountPath: /var/lib/docker/containers
               readOnly: true
@@ -72,10 +75,12 @@ spec:
         - name: run
           hostPath:
             path: /run/promtail
+        - name: varlog
+          hostPath:
+            path: /var/log
         - name: containers
           hostPath:
             path: /var/lib/docker/containers
         - name: pods
           hostPath:
             path: /var/log/pods
-

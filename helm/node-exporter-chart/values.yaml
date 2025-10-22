@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 # Namespace for Node Exporter deployment
-namespace: default
+namespace: dev-test
 
 # This sets the container image
 image:

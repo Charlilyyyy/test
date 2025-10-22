@@ -13,6 +13,7 @@ rules:
       - services
       - endpoints
       - pods
+      - namespaces
     verbs: ["get", "watch", "list"]
 {{- end }}
 
